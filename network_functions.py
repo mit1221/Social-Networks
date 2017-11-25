@@ -3,6 +3,8 @@ from typing import List, Tuple, Dict, TextIO
 profiles = open('profiles.txt')
 p = {}
 n = {}
+ex1 = {'Jay Pritchett': ['Claire Dunphy', 'Gloria Pritchett', 'Manny Delgado'], 'Claire Dunphy': ['Jay Pritchett', 'Mitchell Pritchett', 'Phil Dunphy'], 'Manny Delgado': ['Gloria Pritchett', 'Jay Pritchett', 'Luke Dunphy'], 'Mitchell Pritchett': ['Cameron Tucker', 'Claire Dunphy', 'Luke Dunphy'], 'Alex Dunphy': ['Luke Dunphy'], 'Cameron Tucker': ['Gloria Pritchett', 'Mitchell Pritchett'], 'Haley Gwendolyn Dunphy': ['Dylan D-Money', 'Gilbert D-Cat'], 'Phil Dunphy': ['Claire Dunphy', 'Luke Dunphy'], 'Dylan D-Money': ['Chairman D-Cat', 'Haley Gwendolyn Dunphy'], 'Gloria Pritchett': ['Cameron Tucker', 'Jay Pritchett', 'Manny Delgado'], 'Luke Dunphy': ['Alex Dunphy', 'Manny Delgado', 'Mitchell Pritchett', 'Phil Dunphy']}
+ex2 = {'Claire Dunphy': ['Parent Teacher Association'], 'Manny Delgado': ['Chess Club'], 'Mitchell Pritchett': ['Law Association'], 'Alex Dunphy': ['Chess Club', 'Orchestra'], 'Cameron Tucker': ['Clown School', 'Wizard of Oz Fan Club'], 'Phil Dunphy': ['Real Estate Association'], 'Gloria Pritchett': ['Parent Teacher Association']}
 
 def load_profiles(profiles_file: TextIO, person_to_friends: \
                   Dict[str, List[str]], person_to_networks: \
@@ -54,19 +56,18 @@ def get_average_friend_count(person_to_friends: Dict[str, List[str]]) -> float:
      'Jacob Brown', 'Jay Kapadia', 'John Ventura'], 'John Ventura': \
      ['Gamila Jonckers', 'Rachel Lawerenz']})
     3.0
-    >>> get_average_friend_count({'Mit Kapadia': ['Jay Patel', 'John Ventura']})
-    2.0
     """
-    total_friends = 0
-    
-    for person in person_to_friends:
-        total_friends += len(person_to_friends[person])
-    
-    ## Should we round the average
-    return total_friends / len(person_to_friends)
+    if person_to_friends != {}:
+        total_friends = 0
+        
+        for person in person_to_friends:
+            total_friends += len(person_to_friends[person])
+        
+        return total_friends / len(person_to_friends)
+    return 0.0
 
-
-def get_families(person_to_friends: Dict[str, List[str]]) -> Dict[str, List[str]]:
+def get_families(person_to_friends: Dict[str, List[str]]) -> Dict[str, \
+                                                                  List[str]]:
     """Return a "last name to first names" dictionary based on the given 
     "person to friends" dictionary.
     
@@ -161,15 +162,12 @@ def make_recommendations(person: str, person_to_friends: Dict[str, List[str]], \
 
         for friend in possible_friends:
             score = 0
-            print(friend)
             if friend in person_to_friends:
                 friend_friends = person_to_friends[friend]
                 
                 for person_ in person_friends:
                     if person_ in friend_friends:
                         score += 1
-            print(score)
-            print("---")
             
             if friend in person_to_networks:
                 network_to_people = invert_network(person_to_networks)
@@ -177,32 +175,30 @@ def make_recommendations(person: str, person_to_friends: Dict[str, List[str]], \
                     if person in network_to_people[network] and friend in \
                        network_to_people[network]:
                         score += 1
-            print(score)
             if score > 0:
                 if person[person.rfind(' ') + 1:] == \
                    friend[friend.rfind(' ') + 1:]:
                     score += 1
-                
-                potential_friends.append((friend, score))
-            print(score)
-            print("====over=====")
-    #sorting    
-    new_list = []
-    all_scores = []
-    
-    for friend in potential_friends:
-        all_scores.append(friend[1])
-    
-    all_scores.sort()
-    
-    for score in all_scores:
-        for friend in potential_friends:
-            if friend[1] == score and friend not in new_list:
-                new_list.append(friend)
-                break
-    
-    return new_list
+                potential_friends.append((friend, score))  
+    sort_tuples_list(potential_friends)
+    return potential_friends
 
+
+def sort_tuples_list(list1: List[Tuple[str, int]]) -> None:
+    '''Sort list1, which is a list of tuples from highest to lowest score. If 
+    the same score occurs in more than one tuple, then sort those 
+    elements alphabetically.
+    '''
+    end = len(list1) - 1
+    
+    while end != 0:
+        for i in range(end):
+            if list1[i][1] < list1[i + 1][1]:
+                list1[i], list1[i + 1] = list1[i + 1], list1[i]
+            if (list1[i][1] == list1[i + 1][1]) and (list1[i][0] > \
+                                                     list1[i + 1][0]):
+                list1[i], list1[i + 1] = list1[i + 1], list1[i]  
+        end = end - 1    
 
 def format_name(person: str) -> str:
     """Return a new string in the format "FirstName(s) LastName" given the 
